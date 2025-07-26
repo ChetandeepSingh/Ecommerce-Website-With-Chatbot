@@ -40,7 +40,11 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify actual origins
+    allow_origins=[
+        "http://localhost:3000",  # Development
+        "https://*.netlify.app",  # Any Netlify subdomain
+        "https://*.onrender.com",  # Any Render subdomain
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
