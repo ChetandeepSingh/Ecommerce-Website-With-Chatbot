@@ -11,9 +11,7 @@ from schemas import (
     ConversationMessage as ConversationMessageSchema, MessageType
 )
 from services.conversation_service import ConversationService
-from services.ecommerce_service import EcommerceService
-from services.query_parser import QueryParser, QueryType
-from services.response_formatter import ResponseFormatter
+from services.enhanced_chat_service import EnhancedChatService
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -55,7 +53,7 @@ async def chat(
 ):
     """
     Primary chat endpoint that accepts user messages and returns AI responses.
-    Enhanced with business logic for e-commerce queries.
+    Enhanced with LLM integration and intelligent business logic.
     """
     # Get or create conversation session
     user_id = request.user_id or "anonymous"
@@ -69,59 +67,25 @@ async def chat(
         request.message
     )
     
-    # Initialize services
-    ecommerce_service = EcommerceService(db)
-    query_parser = QueryParser()
-    response_formatter = ResponseFormatter()
+    # Initialize enhanced chat service
+    enhanced_chat_service = EnhancedChatService(db)
     
     try:
-        # Parse the user's query
-        parsed_query = query_parser.parse_query(request.message)
-        query_type = parsed_query["query_type"]
-        parameters = parsed_query["parameters"]
+        # Get conversation history for context
+        conversation_history = conversation_service.get_session_messages(session.session_id)
+        history_context = [
+            {"role": msg.message_type, "content": msg.content}
+            for msg in conversation_history[-5:]  # Last 5 messages for context
+        ]
         
-        # Generate response based on query type
-        ai_response_text = ""
-        
-        if query_type == QueryType.TOP_PRODUCTS:
-            limit = parameters.get("limit", 5)
-            products = ecommerce_service.get_top_products(limit)
-            ai_response_text = response_formatter.format_top_products_response(products)
-            
-        elif query_type == QueryType.ORDER_STATUS:
-            order_id = parameters.get("order_id")
-            order_status = ecommerce_service.get_order_status(order_id)
-            ai_response_text = response_formatter.format_order_status_response(order_status)
-            
-        elif query_type == QueryType.STOCK_LEVELS:
-            product_name = parameters.get("product_name")
-            stock_levels = ecommerce_service.get_stock_levels(product_name)
-            ai_response_text = response_formatter.format_stock_levels_response(stock_levels)
-            
-        elif query_type == QueryType.USER_ORDERS:
-            user_id_param = parameters.get("user_id")
-            if user_id_param:
-                orders = ecommerce_service.get_user_orders(user_id_param)
-                ai_response_text = response_formatter.format_user_orders_response(orders)
-            else:
-                ai_response_text = "Please provide a user ID to check orders."
-                
-        elif query_type == QueryType.PRODUCT_DETAILS:
-            product_name = parameters.get("product_name")
-            products = ecommerce_service.get_product_details(product_name)
-            ai_response_text = response_formatter.format_product_details_response(products)
-            
-        elif query_type == QueryType.SALES_ANALYTICS:
-            analytics = ecommerce_service.get_sales_analytics()
-            ai_response_text = response_formatter.format_sales_analytics_response(analytics)
-            
-        else:  # QueryType.GENERAL
-            message = parameters.get("message", request.message)
-            ai_response_text = response_formatter.format_general_response(message)
+        # Process message with enhanced service
+        ai_response_text, needs_clarification, missing_info = enhanced_chat_service.process_message(
+            request.message, history_context
+        )
         
     except Exception as e:
         # Handle errors gracefully
-        ai_response_text = response_formatter.format_error_response("database_error", str(e))
+        ai_response_text = f"I'm having trouble processing your request right now. Please try again later. Error: {str(e)}"
     
     # Store AI response
     ai_message = conversation_service.add_message(
@@ -200,12 +164,14 @@ async def get_database_stats(db: Session = Depends(get_db)):
 @app.get("/api/analytics/top-products")
 async def get_top_products(limit: int = 5, db: Session = Depends(get_db)):
     """Get top selling products"""
+    from services.ecommerce_service import EcommerceService
     ecommerce_service = EcommerceService(db)
     return ecommerce_service.get_top_products(limit)
 
 @app.get("/api/orders/{order_id}/status")
 async def get_order_status(order_id: int, db: Session = Depends(get_db)):
     """Get order status by ID"""
+    from services.ecommerce_service import EcommerceService
     ecommerce_service = EcommerceService(db)
     order_status = ecommerce_service.get_order_status(order_id)
     if not order_status:
@@ -215,14 +181,22 @@ async def get_order_status(order_id: int, db: Session = Depends(get_db)):
 @app.get("/api/inventory/stock-levels")
 async def get_stock_levels(product_name: str = None, db: Session = Depends(get_db)):
     """Get stock levels for products"""
+    from services.ecommerce_service import EcommerceService
     ecommerce_service = EcommerceService(db)
     return ecommerce_service.get_stock_levels(product_name)
 
 @app.get("/api/analytics/sales")
 async def get_sales_analytics(db: Session = Depends(get_db)):
     """Get overall sales analytics"""
+    from services.ecommerce_service import EcommerceService
     ecommerce_service = EcommerceService(db)
     return ecommerce_service.get_sales_analytics()
+
+@app.get("/api/llm/status")
+async def get_llm_status(db: Session = Depends(get_db)):
+    """Get LLM service status"""
+    enhanced_chat_service = EnhancedChatService(db)
+    return enhanced_chat_service.get_llm_status()
 
 if __name__ == "__main__":
     import uvicorn
