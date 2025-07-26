@@ -1,70 +1,217 @@
-# Getting Started with Create React App
+# 🎨 E-commerce Chatbot Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, responsive React frontend for the E-commerce Chatbot with intelligent AI-powered customer support interface.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+### **🎯 Milestone 7: Client-Side State Management**
+- **React Context API**: Centralized state management using Context API and useReducer
+- **State Management**: Handles message list, loading status, and user input value
+- **Predictable State Updates**: Reducer pattern for consistent state changes
+- **Global State Access**: Easy access to chat state throughout the component tree
 
-### `npm start`
+### **🎨 Modern UI/UX Design**
+- **Gradient Backgrounds**: Beautiful purple-blue gradient theme
+- **Glass Morphism**: Backdrop blur effects and transparency
+- **Smooth Animations**: Message slide-in, typing indicators, and hover effects
+- **Responsive Design**: Mobile-first approach with breakpoints
+- **Modern Typography**: Clean, readable font stack
+- **Interactive Elements**: Hover states, focus indicators, and transitions
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### **💬 Chat Interface**
+- **Real-time Messaging**: Instant message display and typing indicators
+- **Message Bubbles**: Distinct styling for user and AI messages
+- **Auto-scroll**: Automatic scrolling to latest messages
+- **Loading States**: Visual feedback during API calls
+- **Error Handling**: Graceful error messages and fallbacks
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🏗️ Architecture
 
-### `npm test`
+### **State Management (Context API)**
+```javascript
+// State Structure
+{
+  messages: [],        // Chat message history
+  isLoading: false,    // Loading status indicator
+  userInput: ''        // Current user input value
+}
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+// Actions
+- ADD_MESSAGE         // Add new message to chat
+- SET_LOADING         // Update loading status
+- SET_USER_INPUT      // Update input field value
+- CLEAR_INPUT         // Clear input field
+- ADD_ERROR_MESSAGE   // Add error message
+```
 
-### `npm run build`
+### **Component Structure**
+```
+src/
+├── context/
+│   └── ChatContext.jsx          # State management context
+├── components/
+│   ├── ChatWindow.jsx           # Main chat container
+│   ├── MessageList.jsx          # Message display area
+│   ├── Message.jsx              # Individual message component
+│   └── UserInput.jsx            # Input form component
+├── App.js                       # Main application component
+├── App.css                      # Modern styling
+└── index.js                     # Application entry point
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🎨 Design System
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### **Color Palette**
+- **Primary Gradient**: `#667eea` to `#764ba2`
+- **Background**: Linear gradient with purple-blue theme
+- **Text**: `#333` for primary, `#666` for secondary
+- **Borders**: `#e2e8f0` for subtle separators
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### **Typography**
+- **Font Family**: System fonts (San Francisco, Segoe UI, etc.)
+- **Headings**: Bold weights with gradient text effects
+- **Body Text**: Clean, readable sans-serif
 
-### `npm run eject`
+### **Spacing & Layout**
+- **Container**: Max-width 800px for optimal readability
+- **Padding**: Consistent 1rem-1.5rem spacing
+- **Border Radius**: 18px for messages, 25px for inputs
+- **Shadows**: Subtle depth with rgba shadows
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🚀 Quick Start
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### **Prerequisites**
+- Node.js 14+ and npm
+- Backend server running on `http://localhost:8000`
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### **Installation**
+```bash
+# Install dependencies
+npm install
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+# Start development server
+npm start
+```
 
-## Learn More
+### **Build for Production**
+```bash
+npm run build
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 📱 Responsive Design
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### **Breakpoints**
+- **Desktop**: 1200px+ (Full layout)
+- **Tablet**: 768px-1199px (Adjusted spacing)
+- **Mobile**: 480px-767px (Compact layout)
+- **Small Mobile**: <480px (Minimal spacing)
 
-### Code Splitting
+### **Mobile Optimizations**
+- Touch-friendly button sizes
+- Optimized input fields for mobile keyboards
+- Reduced padding and margins
+- Simplified animations for performance
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🔧 Configuration
 
-### Analyzing the Bundle Size
+### **Environment Variables**
+Create a `.env` file in the frontend directory:
+```env
+REACT_APP_API_URL=http://localhost:8000
+REACT_APP_ENVIRONMENT=development
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### **API Integration**
+The frontend connects to the FastAPI backend at:
+- **Chat Endpoint**: `POST /api/chat`
+- **CORS**: Configured for local development
+- **Error Handling**: Graceful fallbacks for connection issues
 
-### Making a Progressive Web App
+## 🎯 State Management Details
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### **Context Provider**
+```javascript
+// Wraps the entire app
+<ChatProvider>
+  <App />
+</ChatProvider>
+```
 
-### Advanced Configuration
+### **Custom Hook**
+```javascript
+// Easy access to state and actions
+const { messages, isLoading, userInput, addMessage, setLoading } = useChat();
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### **Reducer Pattern**
+- **Predictable**: All state changes go through the reducer
+- **Debuggable**: Easy to track state changes
+- **Testable**: Pure functions for state updates
+- **Scalable**: Easy to add new actions and state properties
 
-### Deployment
+## 🧪 Testing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### **Component Testing**
+```bash
+npm test
+```
 
-### `npm run build` fails to minify
+### **Manual Testing**
+1. Start the backend server
+2. Start the frontend development server
+3. Test chat functionality with various queries
+4. Verify responsive design on different screen sizes
+5. Test error handling by disconnecting backend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 🚀 Performance Features
+
+### **Optimizations**
+- **CSS-in-JS**: Efficient styling with CSS classes
+- **Lazy Loading**: Components load as needed
+- **Memoization**: React.memo for performance
+- **Debounced Input**: Smooth typing experience
+
+### **Accessibility**
+- **ARIA Labels**: Screen reader support
+- **Keyboard Navigation**: Full keyboard accessibility
+- **Focus Management**: Proper focus indicators
+- **Color Contrast**: WCAG compliant color ratios
+
+## 🎨 Customization
+
+### **Theming**
+Modify `App.css` to customize:
+- Color gradients and palettes
+- Typography and spacing
+- Animation timings and effects
+- Border radius and shadows
+
+### **Adding Features**
+- New message types with custom styling
+- Additional state properties in Context
+- Enhanced animations and transitions
+- Integration with external services
+
+## 📚 Dependencies
+
+### **Core Dependencies**
+- `react`: ^19.1.0 - UI library
+- `react-dom`: ^19.1.0 - DOM rendering
+- `react-scripts`: 5.0.1 - Build tools
+
+### **Development Dependencies**
+- `@testing-library/react`: ^16.3.0 - Testing utilities
+- `@testing-library/jest-dom`: ^6.6.3 - DOM testing
+- `web-vitals`: ^2.1.4 - Performance monitoring
+
+## 🤝 Contributing
+
+1. Follow the existing code structure
+2. Use the Context API for state management
+3. Maintain responsive design principles
+4. Add appropriate CSS classes for styling
+5. Test on multiple screen sizes
+
+---
+
+**Built with React, Context API, and modern CSS** 🎨

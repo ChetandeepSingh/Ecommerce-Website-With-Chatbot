@@ -1,21 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import MessageList from './MessageList';
 import UserInput from './UserInput';
+import { useChat } from '../context/ChatContext';
 
 const ChatWindow = () => {
-  const [messages, setMessages] = useState([
-    { id: 1, sender: 'ai', text: 'Hello! How can I help you today?' }
-  ]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { messages, isLoading, addMessage, setLoading, addErrorMessage } = useChat();
 
   const sendMessage = async (text) => {
     if (!text.trim()) return;
     
     // Add user message immediately
     const userMessage = { id: Date.now(), sender: 'user', text };
-    setMessages(prev => [...prev, userMessage]);
+    addMessage(userMessage);
     
-    setIsLoading(true);
+    setLoading(true);
     
     try {
       const response = await fetch('http://localhost:8000/api/chat', {
@@ -41,18 +39,13 @@ const ChatWindow = () => {
         sender: 'ai', 
         text: data.response 
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       
     } catch (error) {
       console.error('Error sending message:', error);
-      const errorMessage = { 
-        id: Date.now() + 1, 
-        sender: 'ai', 
-        text: 'Sorry, I\'m having trouble connecting right now. Please try again later.' 
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      addErrorMessage('Sorry, I\'m having trouble connecting right now. Please try again later.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 

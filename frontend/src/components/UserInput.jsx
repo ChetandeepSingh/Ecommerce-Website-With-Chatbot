@@ -1,50 +1,42 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useChat } from '../context/ChatContext';
 
 const UserInput = ({ onSend, disabled = false }) => {
-  const [input, setInput] = useState('');
+  const { userInput, setUserInput, clearInput } = useChat();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (input.trim() && !disabled) {
-      onSend(input);
-      setInput('');
+    if (userInput.trim() && !disabled) {
+      onSend(userInput);
+      clearInput();
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', padding: '16px', borderTop: '1px solid #eee' }}>
-      <input
-        type="text"
-        placeholder="Type your message..."
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        disabled={disabled}
-        style={{ 
-          flex: 1, 
-          padding: '10px', 
-          fontSize: '1rem', 
-          borderRadius: '6px', 
-          border: '1px solid #ccc',
-          opacity: disabled ? 0.6 : 1
-        }}
-      />
-      <button 
-        type="submit" 
-        disabled={disabled}
-        style={{ 
-          marginLeft: '8px', 
-          padding: '10px 18px', 
-          fontSize: '1rem', 
-          borderRadius: '6px', 
-          background: disabled ? '#ccc' : '#007bff', 
-          color: '#fff', 
-          border: 'none',
-          cursor: disabled ? 'not-allowed' : 'pointer'
-        }}
-      >
-        {disabled ? 'Sending...' : 'Send'}
-      </button>
-    </form>
+    <div className="user-input-container">
+      <form onSubmit={handleSubmit} className="user-input-form">
+        <input
+          type="text"
+          placeholder="Type your message..."
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          disabled={disabled}
+          className="user-input-field"
+        />
+        <button 
+          type="submit" 
+          disabled={disabled}
+          className="send-button"
+        >
+          {disabled ? 'Sending...' : (
+            <>
+              Send
+              <span className="send-icon">→</span>
+            </>
+          )}
+        </button>
+      </form>
+    </div>
   );
 };
 
