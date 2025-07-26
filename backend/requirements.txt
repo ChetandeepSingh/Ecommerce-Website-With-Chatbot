@@ -6,12 +6,12 @@ uvicorn==0.24.0
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 
-# Data processing - use a version compatible with Python 3.11
-pandas>=2.0.0,<3.0.0
+# Data processing - use older pandas version
+pandas==1.5.3
 
-# Environment and validation
+# Environment and validation - use older pydantic
 python-dotenv==1.0.0
-pydantic==2.5.0
+pydantic==1.10.13
 
 # Database migrations
 alembic==1.12.1

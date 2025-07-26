@@ -25,7 +25,7 @@ class ConversationMessage(BaseModel):
     timestamp: datetime
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class ConversationSession(BaseModel):
     id: int
@@ -37,7 +37,7 @@ class ConversationSession(BaseModel):
     messages: List[ConversationMessage] = []
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # E-commerce Data Schemas (for API responses)
 class DistributionCenterResponse(BaseModel):
@@ -47,7 +47,7 @@ class DistributionCenterResponse(BaseModel):
     longitude: float
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class UserResponse(BaseModel):
     id: int
@@ -62,7 +62,7 @@ class UserResponse(BaseModel):
     created_at: Optional[datetime] = None
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class InventoryItemResponse(BaseModel):
     id: int
@@ -77,7 +77,7 @@ class InventoryItemResponse(BaseModel):
     sold_at: Optional[datetime] = None
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class OrderResponse(BaseModel):
     order_id: int
@@ -91,7 +91,7 @@ class OrderResponse(BaseModel):
     num_of_item: int
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class OrderItemResponse(BaseModel):
     id: int
@@ -106,7 +106,7 @@ class OrderItemResponse(BaseModel):
     returned_at: Optional[datetime] = None
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Analytics Response Schemas
 class TopProductResponse(BaseModel):
