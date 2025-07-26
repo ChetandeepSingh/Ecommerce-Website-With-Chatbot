@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 import os
+import logging
 
-from database import get_db, engine
+from database import get_db, engine, test_database_connection
 from models import Base
 from schemas import (
     ChatRequest, ChatResponse, ConversationSession as ConversationSessionSchema,
@@ -13,8 +14,22 @@ from schemas import (
 from services.conversation_service import ConversationService
 from services.enhanced_chat_service import EnhancedChatService
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Test database connection on startup
+if not test_database_connection():
+    logger.error("❌ Failed to connect to database on startup")
+    raise RuntimeError("Database connection failed")
+
+# Create database tables (only in development)
+if os.getenv("ENVIRONMENT", "development") == "development":
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("✅ Database tables created/verified")
+    except Exception as e:
+        logger.error(f"❌ Failed to create database tables: {e}")
+        raise
 
 app = FastAPI(
     title="E-commerce Chatbot API",
@@ -42,8 +57,22 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
+    """Health check endpoint with database status"""
+    try:
+        # Test database connection
+        db_status = test_database_connection()
+        return {
+            "status": "healthy" if db_status else "unhealthy",
+            "database": "connected" if db_status else "disconnected",
+            "timestamp": "2024-01-01T00:00:00Z"  # You can add actual timestamp if needed
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {
+            "status": "unhealthy",
+            "database": "error",
+            "error": str(e)
+        }
 
 # Conversation endpoints
 @app.post("/api/chat", response_model=ChatResponse)

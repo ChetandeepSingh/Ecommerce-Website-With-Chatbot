@@ -7,34 +7,74 @@ Loads CSV data into Supabase PostgreSQL database
 import pandas as pd
 import os
 import sys
+import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, DistributionCenter, User, InventoryItem, Order, OrderItem
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-# Get Supabase connection string
-DATABASE_URL = os.getenv("DATABASE_URL")
-print(f"🚀 Loading data into Supabase...")
+def validate_environment():
+    """Validate environment setup"""
+    load_dotenv()
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    
+    if not DATABASE_URL:
+        logger.error("❌ DATABASE_URL environment variable is not set")
+        logger.error("   Please check your .env file")
+        return False
+    
+    logger.info("✅ Environment variables loaded successfully")
+    return True
+
+def validate_csv_files():
+    """Validate that all required CSV files exist"""
+    csv_files = [
+        'distribution_centers.csv',
+        'users.csv', 
+        'inventory_items.csv',
+        'orders.csv',
+        'order_items.csv'
+    ]
+    
+    missing_files = []
+    for csv_file in csv_files:
+        csv_path = os.path.join('..', 'dataset', 'archive', csv_file)
+        if not os.path.exists(csv_path):
+            missing_files.append(csv_file)
+    
+    if missing_files:
+        logger.error(f"❌ Missing CSV files: {missing_files}")
+        logger.error("   Please ensure all CSV files are in ../dataset/archive/")
+        return False
+    
+    logger.info("✅ All required CSV files found")
+    return True
 
 # Create engine and session
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def get_database_session():
+    """Get database session with error handling"""
+    try:
+        DATABASE_URL = os.getenv("DATABASE_URL")
+        engine = create_engine(DATABASE_URL)
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        return SessionLocal()
+    except Exception as e:
+        logger.error(f"❌ Failed to create database session: {e}")
+        return None
 
 def load_distribution_centers():
     """Load distribution centers data"""
-    print("📦 Loading distribution centers...")
     csv_path = os.path.join('..', 'dataset', 'archive', 'distribution_centers.csv')
-    
-    if not os.path.exists(csv_path):
-        print(f"❌ CSV file not found: {csv_path}")
-        return False
     
     try:
         df = pd.read_csv(csv_path)
-        db = SessionLocal()
+        db = get_database_session()
+        if not db:
+            return False
         
         for _, row in df.iterrows():
             distribution_center = DistributionCenter(
@@ -47,11 +87,11 @@ def load_distribution_centers():
         
         db.commit()
         db.close()
-        print(f"✅ Loaded {len(df)} distribution centers")
+        logger.info(f"✅ Loaded {len(df)} distribution centers")
         return True
         
     except Exception as e:
-        print(f"❌ Error loading distribution centers: {e}")
+        logger.error(f"❌ Error loading distribution centers: {e}")
         return False
 
 def load_users():
@@ -127,7 +167,7 @@ def load_inventory_items():
                     cost=row['cost'],
                     product_category=row['product_category'],
                     product_name=row['product_name'],
-                    product_brand=row['product_brand'] if pd.notna(row['product_brand']) else 'Unknown',
+                    product_brand=row['product_brand'] if pd.notna(row['product_brand']) else None,
                     product_retail_price=row['product_retail_price'],
                     product_department=row['product_department'],
                     product_sku=row['product_sku'],
@@ -234,32 +274,46 @@ def load_order_items():
 
 def main():
     """Main data loading function"""
-    print("🚀 Starting data loading process...\n")
+    logger.info("🚀 Starting data loading process...\n")
     
-    # Load data in order (respecting foreign key constraints)
+    # Step 1: Validate environment
+    if not validate_environment():
+        return False
+    
+    # Step 2: Validate CSV files
+    if not validate_csv_files():
+        return False
+    
+    # Step 3: Test database connection
+    db = get_database_session()
+    if not db:
+        return False
+    db.close()
+    
+    # Step 4: Load data in order (respecting foreign key constraints)
     success = True
+    load_functions = [
+        ("Distribution Centers", load_distribution_centers),
+        ("Users", load_users),
+        ("Inventory Items", load_inventory_items),
+        ("Orders", load_orders),
+        ("Order Items", load_order_items)
+    ]
     
-    if not load_distribution_centers():
-        success = False
-    
-    if not load_users():
-        success = False
-    
-    if not load_inventory_items():
-        success = False
-    
-    if not load_orders():
-        success = False
-    
-    if not load_order_items():
-        success = False
+    for name, load_func in load_functions:
+        logger.info(f"\n📦 Loading {name}...")
+        if not load_func():
+            logger.error(f"❌ Failed to load {name}")
+            success = False
+            break
+        logger.info(f"✅ {name} loaded successfully")
     
     if success:
-        print("\n🎉 Data loading completed successfully!")
-        print("   You can now view your data in the Supabase dashboard")
-        print("   Next step: Test the chatbot API")
+        logger.info("\n🎉 Data loading completed successfully!")
+        logger.info("   You can now view your data in the Supabase dashboard")
+        logger.info("   Next step: Test the chatbot API")
     else:
-        print("\n⚠️  Some data loading failed, but the system should still work")
+        logger.warning("\n⚠️  Data loading failed")
     
     return success
 

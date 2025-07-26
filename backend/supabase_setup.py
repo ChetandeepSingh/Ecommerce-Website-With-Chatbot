@@ -5,32 +5,46 @@ Creates all tables in Supabase PostgreSQL database
 """
 
 import os
+import logging
+import sys
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from models import Base
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-# Get Supabase connection string
-DATABASE_URL = os.getenv("DATABASE_URL")
-print(f"🚀 Setting up Supabase database...")
+def validate_environment():
+    """Validate environment setup"""
+    load_dotenv()
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    
+    if not DATABASE_URL:
+        logger.error("❌ DATABASE_URL environment variable is not set")
+        logger.error("   Please check your .env file")
+        return False
+    
+    logger.info("✅ Environment variables loaded successfully")
+    return True
 
 def create_tables():
     """Create all database tables"""
     try:
+        DATABASE_URL = os.getenv("DATABASE_URL")
         engine = create_engine(DATABASE_URL)
         Base.metadata.create_all(bind=engine)
-        print("✅ Database tables created successfully!")
+        logger.info("✅ Database tables created successfully!")
         return True
     except Exception as e:
-        print(f"❌ Failed to create tables: {e}")
+        logger.error(f"❌ Failed to create tables: {e}")
         return False
 
 def test_tables():
     """Test that tables were created"""
     try:
+        DATABASE_URL = os.getenv("DATABASE_URL")
         engine = create_engine(DATABASE_URL)
         with engine.connect() as conn:
             # Check if tables exist
@@ -42,32 +56,49 @@ def test_tables():
             """))
             tables = [row[0] for row in result.fetchall()]
             
-            print(f"📋 Found {len(tables)} tables:")
+            logger.info(f"📋 Found {len(tables)} tables:")
             for table in tables:
-                print(f"   - {table}")
+                logger.info(f"   - {table}")
             
+            # Check for required tables
+            required_tables = [
+                'conversation_messages', 'conversation_sessions', 
+                'distribution_centers', 'inventory_items', 
+                'order_items', 'orders', 'users'
+            ]
+            
+            missing_tables = [table for table in required_tables if table not in tables]
+            if missing_tables:
+                logger.warning(f"⚠️  Missing tables: {missing_tables}")
+                return False
+            
+            logger.info("✅ All required tables are present")
             return True
     except Exception as e:
-        print(f"❌ Failed to test tables: {e}")
+        logger.error(f"❌ Failed to test tables: {e}")
         return False
 
 def main():
     """Main setup function"""
-    print("🚀 Supabase Database Setup...\n")
+    logger.info("🚀 Supabase Database Setup...\n")
     
-    # Step 1: Create tables
+    # Step 1: Validate environment
+    if not validate_environment():
+        return False
+    
+    # Step 2: Create tables
     if not create_tables():
         return False
     
-    # Step 2: Test tables
+    # Step 3: Test tables
     if not test_tables():
         return False
     
-    print("\n🎉 Supabase database setup completed successfully!")
-    print("   You can now view your tables in the Supabase dashboard")
-    print("   Next step: Load data from CSV files")
+    logger.info("\n🎉 Supabase database setup completed successfully!")
+    logger.info("   You can now view your tables in the Supabase dashboard")
+    logger.info("   Next step: Load data from CSV files")
     return True
 
 if __name__ == "__main__":
     success = main()
-    exit(0 if success else 1) 
+    sys.exit(0 if success else 1) 
